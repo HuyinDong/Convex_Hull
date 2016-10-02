@@ -1,193 +1,274 @@
-<html>
-<head>
-	<title>Convell Hull</title>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	<style>
-	body{
-		margin-top: 100px;
-	}
+
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Narrow Jumbotron Template for Bootstrap</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <!-- Custom styles for this template -->
+    <link href="jumbotron-narrow.css" rel="stylesheet">
+
+		<style>
 		.points{
-			fill:steelblue;
+				fill:steelblue;
+			}
+
+		</style>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="header clearfix">
+        <nav>
+          <ul class="nav nav-pills pull-right">
+	            <li role="presentation"  id = "drawPoly"><a href="#">Draw Polyon</a></li>
+							<li role="presentation" id = "reset"><a href="#">Reset</a></li>
+          </ul>
+        </nav>
+        <h3 class="text-muted">Convex Hull</h3>
+      </div>
+
+      <div class="jumbotron poly">
+
+      </div>
+
+
+
+      <footer class="footer">
+        <p>&copy; 2016 Company, Inc.</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+		<script src="http://d3js.org/d3.v3.min.js"></script>
+		<script>
+
+		/*
+		 *  Stack
+		 */
+
+		var Stack = function(){
+		    this.list = [];
+		};
+
+		Stack.prototype.push = function(obj){
+		    this.list.push(obj);
+		};
+
+		Stack.prototype.pop = function(){
+		    var temp =  this.list[this.list.length-1];
+		    this.list.splice(this.list.length-1,1);
+		    return temp;
+		};
+
+		Stack.prototype.peek = function(){
+		    var temp =  this.list[this.list.length-1];
+		    return temp;
+		};
+
+		Stack.prototype.isEmpty = function(){
+		    return this.list.length == 0 ;
+		};
+
+		Stack.prototype.size = function(){
+		    return this.list.length ;
+		};
+
+
+
+		/*function getRandomPoints(n){
+			var mX=50, mY=50;//margin;
+			return d3.range(0,n).map(function(d){
+				return {i:d, x:mX+Math.round(Math.random()*(width-2*mX)), y:mY+Math.round(Math.random()*(height-2*mY))};
+				});
+		}
+		*/
+
+
+
+		function getOrigin(points){
+			var min = points[0];
+			var index =0;
+			points.forEach(function(ele,i){
+				if(ele.y > min.y){
+					min = ele;
+					index = i;
+				}
+			});
+			return min;
 		}
 
-	</style>
-</head>
-<body>
-<div class= "container">
-	<div class= "row">
-		<div class="col-md-8 poly" ></div>
- <div class="col-md-4">
-	 <button class="btn btn-default" id = "drawPoly">DrawPolygon</button>
- </div>
-</div>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-<script src="http://d3js.org/d3.v3.min.js"></script>
-<script>
+		function getAngel(origin,points){
+				for(var i = 0; i < points.length; i++){
+					var ele = points[i];
+					var a1=ele.x-origin.x, b1=origin.y-ele.y;
+					var l = Math.sqrt(a1*a1+b1*b1);
+					ele.angel = Math.acos(a1/l);
+				}
+				for(var i = 0; i < points.length; i++){
+					if(isNaN(points[i].angel)){
+						points.splice(i,1);
+					}
+				}
+		}
 
-/*
- *  Stack
- */
+		function sortPoints(points){
+			console.log("sort");
+			points.sort(function(a,b){
+				 if(a.angel > b.angel){
+					 return 1;
+				 }else if(a.angel == b.angel){
+					 return 0;
+				 }else{
+					 return -1;
+				 }
+			});
+		}
 
-var Stack = function(){
-    this.list = [];
-};
+		function ccw(a,b,c){
 
-Stack.prototype.push = function(obj){
-    this.list.push(obj);
-};
+			var area2 = (b.x-a.x)*(a.y-c.y)-(a.y-b.y)*(c.x-a.x);
+			if(area2 < 0) return -1;
+			else if(area2 > 0) return 1;
+			else return 0;
+		}
 
-Stack.prototype.pop = function(){
-    var temp =  this.list[this.list.length-1];
-    this.list.splice(this.list.length-1,1);
-    return temp;
-};
+		function Graham_Scan(origin,points){
+				var pointsStack = new Stack();
 
-Stack.prototype.peek = function(){
-    var temp =  this.list[this.list.length-1];
-    return temp;
-};
-
-Stack.prototype.isEmpty = function(){
-    return this.list.length == 0 ;
-};
-
-Stack.prototype.size = function(){
-    return this.list.length ;
-};
+				pointsStack.push(origin);
+				pointsStack.push(points[0]);
+				for(var i = 1; i <points.length;i++){
+					var top = pointsStack.pop();
+					while(ccw(pointsStack.peek(),top,points[i]) <=0){
+						top = pointsStack.pop();
+					}
+					pointsStack.push(top);
+					pointsStack.push(points[i]);
+				}
+				pointsStack.push(origin);
+				return pointsStack;
+		}
 
 
+		$(function(){
 
-/*function getRandomPoints(n){
-	var mX=50, mY=50;//margin;
-	return d3.range(0,n).map(function(d){
-		return {i:d, x:mX+Math.round(Math.random()*(width-2*mX)), y:mY+Math.round(Math.random()*(height-2*mY))};
+
+		 var width=600, height=600,points = [];
+		 var svg;
+		 var nodes;
+		 var isDrew = false;
+		 //points=getRandomPoints(25);
+
+		 svg = d3.select(".poly")
+		 					.append("svg")
+							.attr("height",height)
+							.attr("width",width);
+
+		var i = 0;
+							svg.on("click", function() {
+									if(!isDrew){
+						           var coords = d3.mouse(this);
+						           var newData= {
+												 i : i,
+						             x: Math.round(coords[0]),
+						             y: coords[1]
+						           };
+											 i++;
+						           points.push(newData);
+											 nodes = svg.selectAll("g")
+																		 .data(points)
+																	 .enter().append("g")
+																	 .attr("class","points");
+
+											 nodes.append("circle")
+														 .attr("cx",function(d){ return d.x})
+														 .attr("cy",function(d){ return d.y})
+														 .attr("r",3);
+											nodes.append("text")
+														.attr("x",function(d){ return d.x+3})
+														.attr("y",function(d){ return d.y-3})
+														.text(function(d) { return "P"+d.i+":("+d.x + ","+(600-d.y)	+")"; });
+													}
+										 });
+
+		$("#drawPoly").click(function(){
+				if(!isDrew){
+				draw(points);
+				}
 		});
-}
-*/
 
+		function draw(points){
+			  isDrew = true;
+				var origin = getOrigin(points);
+				getAngel(origin,points);
+				sortPoints(points);
+				var temp = Graham_Scan(origin,points);
+				var data = [];
+				while(!temp.isEmpty()){
+					var cur = temp.pop();
+					var next = temp.peek();
+					data.push({
+						cur : cur,
+						next : next
+					});
+				}
 
+				data.splice(data.length-1,1);
 
-function getOrigin(points){
-	var min = points[0];
-	var index =0;
-	points.forEach(function(ele,i){
-		if(ele.y > min.y){
-			min = ele;
-			index = i;
+				nodes.select("line")
+						.data(data)
+						.enter()
+						.append("line")
+						.transition().delay(500).duration(500)
+						.attr("x1",function(d){
+							return d.cur.x;
+						})
+						.attr("y1",function(d){
+							return d.cur.y;
+						})
+						.attr("x2",function(d){
+							return d.next.x;
+						})
+						.attr("y2",function(d){
+							return d.next.y;
+						})
+						.attr("stroke","red");
+
 		}
-	});
-	return min;
-}
+		$("#reset").click(function(){
+				reset();
+		});
 
-function getAngel(origin,points){
-		for(var i = 0; i < points.length; i++){
-			var ele = points[i];
-			var a1=ele.x-origin.x, b1=origin.y-ele.y;
-			var l = Math.sqrt(a1*a1+b1*b1);
-			ele.angel = Math.acos(a1/l);
+		function reset(){
+			d3.select(".poly").selectAll("g").remove();
+			d3.select(".poly").selectAll("line").remove();
+			  isDrew = false;
+				points = [];
 		}
-		for(var i = 0; i < points.length; i++){
-			if(isNaN(points[i].angel)){
-				points.splice(i,1);
-			}
-		}
-}
+		//var origin = getOrigin();
+		//getAngel(origin,points);
+		//sortPoints(points);
+		//var temp = Graham_Scan(origin,points);
 
-function sortPoints(points){
-	console.log("sort");
-	points.sort(function(a,b){
-		 if(a.angel > b.angel){
-			 return 1;
-		 }else if(a.angel == b.angel){
-			 return 0;
-		 }else{
-			 return -1;
-		 }
-	});
-}
-
-function ccw(a,b,c){
-
-	var area2 = (b.x-a.x)*(a.y-c.y)-(a.y-b.y)*(c.x-a.x);
-	if(area2 < 0) return -1;
-	else if(area2 > 0) return 1;
-	else return 0;
-}
-
-function Graham_Scan(origin,points){
-		var pointsStack = new Stack();
-
-		pointsStack.push(origin);
-		pointsStack.push(points[0]);
-		for(var i = 1; i <points.length;i++){
-
-			var top = pointsStack.pop();
-			console.log("ccw",ccw(pointsStack.peek(),top,points[i]));
-			while(ccw(pointsStack.peek(),top,points[i]) <=0){
-				top = pointsStack.pop();
-			}
-			pointsStack.push(top);
-			pointsStack.push(points[i]);
-			console.log(i);
-		}
-		pointsStack.push(origin);
-		return pointsStack;
-}
-
-
-$(function(){
-
-
- var width=800, height=800,points = [];
- var svg;
- var nodes;
- var isDrew = false;
- //points=getRandomPoints(25);
-
- svg = d3.select(".poly")
- 					.append("svg")
-					.attr("height",height)
-					.attr("width",width);
-
-var i = 0;
-					svg.on("click", function() {
-							if(!isDrew){
-				           var coords = d3.mouse(this);
-				           var newData= {
-										 i : i,
-				             x: Math.round(coords[0]),
-				             y: coords[1]
-				           };
-									 i++;
-				           points.push(newData);
-									 nodes = svg.selectAll("g")
-																 .data(points)
-															 .enter().append("g")
-															 .attr("class","points");
-
-									 nodes.append("circle")
-												 .attr("cx",function(d){ return d.x})
-												 .attr("cy",function(d){ return d.y})
-												 .attr("r",3);
-									nodes.append("text")
-												.attr("x",function(d){ return d.x+3})
-												.attr("y",function(d){ return d.y-3})
-												.text(function(d) { return "P"+d.i+":("+d.x + ","+(800-d.y)	+")"; });
-											}
-								 });
-
-$("#drawPoly").click(function(){
-		draw(points);
-});
-
-function draw(points){
-	  isDrew = true;
-		var origin = getOrigin(points);
-		getAngel(origin,points);
-		sortPoints(points);
-		var temp = Graham_Scan(origin,points);
-		var data = [];
+		/*var data = [];
 		while(!temp.isEmpty()){
 			var cur = temp.pop();
 			var next = temp.peek();
@@ -198,12 +279,11 @@ function draw(points){
 		}
 
 		data.splice(data.length-1,1);
-
-		nodes.select("line")
+		*/
+		/*nodes.select("line")
 				.data(data)
 				.enter()
 				.append("line")
-				.transition().delay(500).duration(500)
 				.attr("x1",function(d){
 					return d.cur.x;
 				})
@@ -217,48 +297,9 @@ function draw(points){
 					return d.next.y;
 				})
 				.attr("stroke","red");
+		*/
 
-}
-
-//var origin = getOrigin();
-//getAngel(origin,points);
-//sortPoints(points);
-//var temp = Graham_Scan(origin,points);
-
-/*var data = [];
-while(!temp.isEmpty()){
-	var cur = temp.pop();
-	var next = temp.peek();
-	data.push({
-		cur : cur,
-		next : next
-	});
-}
-
-data.splice(data.length-1,1);
-*/
-/*nodes.select("line")
-		.data(data)
-		.enter()
-		.append("line")
-		.attr("x1",function(d){
-			return d.cur.x;
-		})
-		.attr("y1",function(d){
-			return d.cur.y;
-		})
-		.attr("x2",function(d){
-			return d.next.x;
-		})
-		.attr("y2",function(d){
-			return d.next.y;
-		})
-		.attr("stroke","red");
-*/
-
-});
-</script>
-
-
-</body>
+		});
+		</script>
+  </body>
 </html>
