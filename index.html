@@ -1,7 +1,11 @@
 <html>
 <head>
 	<title>Convell Hull</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	<style>
+	body{
+		margin-top: 100px;
+	}
 		.points{
 			fill:steelblue;
 		}
@@ -9,6 +13,15 @@
 	</style>
 </head>
 <body>
+<div class= "container">
+	<div class= "row">
+		<div class="col-md-8 poly" ></div>
+ <div class="col-md-4">
+	 <button class="btn btn-default" id = "drawPoly">DrawPolygon</button>
+ </div>
+</div>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script>
 
@@ -43,18 +56,19 @@ Stack.prototype.size = function(){
     return this.list.length ;
 };
 
-var width=800, height=800,points = [];
-var svg;
-var nodes;
 
-function getRandomPoints(n){
+
+/*function getRandomPoints(n){
 	var mX=50, mY=50;//margin;
 	return d3.range(0,n).map(function(d){
 		return {i:d, x:mX+Math.round(Math.random()*(width-2*mX)), y:mY+Math.round(Math.random()*(height-2*mY))};
 		});
 }
+*/
 
-function getOrigin(){
+
+
+function getOrigin(points){
 	var min = points[0];
 	var index =0;
 	points.forEach(function(ele,i){
@@ -121,42 +135,97 @@ function Graham_Scan(origin,points){
 		return pointsStack;
 }
 
-function appendText(){
-	nodes.append("text")
-				 .attr("x",function(d){ return d.x+3})
-				 .attr("y",function(d){ return d.y-3})
-				 .text(function(d) { return "P"+d.i+":("+d.x + ","+(800-d.y)	+")"; });
- }
 
-function initialize(){
+$(function(){
 
- points=getRandomPoints(25);
 
- svg = d3.select("body")
+ var width=800, height=800,points = [];
+ var svg;
+ var nodes;
+ var isDrew = false;
+ //points=getRandomPoints(25);
+
+ svg = d3.select(".poly")
  					.append("svg")
 					.attr("height",height)
 					.attr("width",width);
 
- nodes = svg.selectAll("g")
- 							.data(points)
-							.enter().append("g")
-							.attr("class","points");
+var i = 0;
+					svg.on("click", function() {
+							if(!isDrew){
+				           var coords = d3.mouse(this);
+				           var newData= {
+										 i : i,
+				             x: Math.round(coords[0]),
+				             y: coords[1]
+				           };
+									 i++;
+				           points.push(newData);
+									 nodes = svg.selectAll("g")
+																 .data(points)
+															 .enter().append("g")
+															 .attr("class","points");
 
- nodes.append("circle")
-				.attr("cx",function(d){ return d.x})
-				.attr("cy",function(d){ return d.y})
-				.attr("r",3);
- appendText();
+									 nodes.append("circle")
+												 .attr("cx",function(d){ return d.x})
+												 .attr("cy",function(d){ return d.y})
+												 .attr("r",3);
+									nodes.append("text")
+												.attr("x",function(d){ return d.x+3})
+												.attr("y",function(d){ return d.y-3})
+												.text(function(d) { return "P"+d.i+":("+d.x + ","+(800-d.y)	+")"; });
+											}
+								 });
+
+$("#drawPoly").click(function(){
+		draw(points);
+});
+
+function draw(points){
+	  isDrew = true;
+		var origin = getOrigin(points);
+		getAngel(origin,points);
+		sortPoints(points);
+		var temp = Graham_Scan(origin,points);
+		var data = [];
+		while(!temp.isEmpty()){
+			var cur = temp.pop();
+			var next = temp.peek();
+			data.push({
+				cur : cur,
+				next : next
+			});
+		}
+
+		data.splice(data.length-1,1);
+
+		nodes.select("line")
+				.data(data)
+				.enter()
+				.append("line")
+				.transition().delay(500).duration(500)
+				.attr("x1",function(d){
+					return d.cur.x;
+				})
+				.attr("y1",function(d){
+					return d.cur.y;
+				})
+				.attr("x2",function(d){
+					return d.next.x;
+				})
+				.attr("y2",function(d){
+					return d.next.y;
+				})
+				.attr("stroke","red");
+
 }
 
+//var origin = getOrigin();
+//getAngel(origin,points);
+//sortPoints(points);
+//var temp = Graham_Scan(origin,points);
 
-initialize();
-var origin = getOrigin();
-getAngel(origin,points);
-sortPoints(points);
-var temp = Graham_Scan(origin,points);
-
-var data = [];
+/*var data = [];
 while(!temp.isEmpty()){
 	var cur = temp.pop();
 	var next = temp.peek();
@@ -167,8 +236,8 @@ while(!temp.isEmpty()){
 }
 
 data.splice(data.length-1,1);
-
-nodes.select("line")
+*/
+/*nodes.select("line")
 		.data(data)
 		.enter()
 		.append("line")
@@ -185,7 +254,9 @@ nodes.select("line")
 			return d.next.y;
 		})
 		.attr("stroke","red");
+*/
 
+});
 </script>
 
 
