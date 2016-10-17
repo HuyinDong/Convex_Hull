@@ -36,11 +36,11 @@
       <div class="header clearfix">
         <nav>
           <ul class="nav nav-pills pull-right">
-	            <li role="presentation"  id = "drawPoly"><a href="#">Draw Polyon</a></li>
+	            <li role="presentation"  id = "drawPoly"><a href="#">Draw</a></li>
 							<li role="presentation" id = "reset"><a href="#">Reset</a></li>
           </ul>
         </nav>
-        <h3 class="text-muted">Convex Hull</h3>
+        <h3 class="text-muted">Graham Scan to draw convex hull</h3>
       </div>
 
       <div class="jumbotron poly">
@@ -233,17 +233,20 @@
 
 				data.splice(data.length-1,1);
 
-				nodes.select("line")
-						.data(data)
+				var test = nodes.select("line")
+          console.log(test);
+						test.data(data)
 						.enter()
+
 						.append("line")
-						.transition().delay(500).duration(500)
+            .transition().duration(500).delay(500)
 						.attr("x1",function(d){
 							return d.cur.x;
 						})
 						.attr("y1",function(d){
 							return d.cur.y;
 						})
+
 						.attr("x2",function(d){
 							return d.next.x;
 						})
@@ -262,42 +265,9 @@
 			d3.select(".poly").selectAll("line").remove();
 			  isDrew = false;
 				points = [];
+         i = 0;
 		}
-		//var origin = getOrigin();
-		//getAngel(origin,points);
-		//sortPoints(points);
-		//var temp = Graham_Scan(origin,points);
-
-		/*var data = [];
-		while(!temp.isEmpty()){
-			var cur = temp.pop();
-			var next = temp.peek();
-			data.push({
-				cur : cur,
-				next : next
-			});
-		}
-
-		data.splice(data.length-1,1);
-		*/
-		/*nodes.select("line")
-				.data(data)
-				.enter()
-				.append("line")
-				.attr("x1",function(d){
-					return d.cur.x;
-				})
-				.attr("y1",function(d){
-					return d.cur.y;
-				})
-				.attr("x2",function(d){
-					return d.next.x;
-				})
-				.attr("y2",function(d){
-					return d.next.y;
-				})
-				.attr("stroke","red");
-		*/
+	
 
 		});
 		</script>
